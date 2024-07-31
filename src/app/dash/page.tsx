@@ -1,48 +1,49 @@
-'use client';
+"use client"
+import React, { useEffect, useState } from 'react';
 
-import React, { useState } from 'react';
-
-const AccountDetails: React.FC = () => {
-  const [accountDetails, setAccountDetails] = useState<any>(null);
+const KiwifyDataFetcher: React.FC = () => {
+  const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const fetchAccountDetails = async () => {
-    try {
-      const response = await fetch('/api/account-details');
+  useEffect(() => {
+    const fetchData = async () => {
+      const options = {
+        method: 'GET',
+        headers: {
+          'x-kiwify-account-id': 'N8zc0YHdY7Yk6Kt',
+          Authorization: 'Bearer d3ae9d9eb47b7e8c3b04b2c1a3dce8e6845d1aeb88e467a37d311effbb6dc555',
+        },
+      };
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      try {
+        const response = await fetch('https://public-api.kiwify.com/v1/account-details', options);
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const result = await response.json();
+        setData(result);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const data = await response.json();
-      setAccountDetails(data);
-      setError(null); // Resetar erro em caso de sucesso
-    } catch (err) {
-      console.error('Erro ao buscar detalhes da conta:', err);
-      setError('Ocorreu um erro ao obter os detalhes da conta.');
-    }
-  };
+    fetchData();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Detalhes da Conta Kiwify</h1>
-      <button
-        onClick={fetchAccountDetails}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
-        Obter Detalhes da Conta
-      </button>
-
-      {error && <p className="text-red-500 mt-4">{error}</p>}
-
-      {accountDetails && (
-        <div className="mt-4">
-          <h2 className="text-xl font-semibold">Informações da Conta:</h2>
-          <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(accountDetails, null, 2)}</pre>
-        </div>
-      )}
+    <div>
+      <h1>Account Details</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
     </div>
   );
 };
 
-export default AccountDetails;
+export default KiwifyDataFetcher;
